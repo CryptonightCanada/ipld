@@ -10,7 +10,7 @@ How IPFS Web Gateways Work
 
 This document talks through how IPFS web gateways work;
 the various forms of abstraction used in accomplishing parts of that task;
-and how and why these designs are cool (and how to can reuse parts of them).
+and how and why these designs are cool (and how you can reuse parts of them).
 
 :::info
 > Note!  This is an _aspirational_ document -- IPFS web gateways are a feature
@@ -199,7 +199,7 @@ By baking these things into the codec itself, there were several major disadvant
 
 - by baking these sharding mechanisms into a single codec, it was not possible to reuse them with other codecs;
 - because the sharding mechanisms were baked in the codec (and at the time,
-  there wasn't really any coherent definiton of a Data Model at all),
+  there wasn't really any coherent definition of a Data Model at all),
   there was no way to _switch_ between high level and raw views of the data --
   as a result, these systems were much harder to debug;
 - because the sharding mechanisms were tightly bound into the codec,

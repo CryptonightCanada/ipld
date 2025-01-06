@@ -33,7 +33,7 @@ or just based on what fits the performance vs human-readability that you prefer 
 A key part of IPLD is its ability to link together documents.
 
 IPLD linking isn't like some other forms of linking, like URLs (which refer to "locations" of data) --
-instead, it's based on content-addressing (which means refering to data by a hash of its content).
+instead, it's based on content-addressing (which means referring to data by a hash of its content).
 IPLD uses a format called [CIDs](/glossary/#cid) for this, to be specific.
 
 What's neat about content-addressing is that because it does _not_ involve talking about data _location_,
@@ -60,10 +60,22 @@ and [Advanced Data Layouts](/docs/advanced-data-layouts/), which let us do thing
 
 ### Diagram
 
-<a href="../what-is-ipld.png">
-<img src="../what-is-ipld.png" width=100%>
+<a href="../../../img/what-is-ipld.svg">
+<img src="../../../img/what-is-ipld.svg" width=100%>
 <small><i>(click to enlarge)</i></small>
 </a>
+
+- The `Raw Data Model` is how IPLD represents data. It is designed for maximal utility while being practical to support in a wide variety of programming languages and able to represent a diversity of data encodings.
+- `Schemas` are a means of formalizing the shape of data structures within the bounds of the Data Model and may present the data in an altered form. (e.g. a "struct" containing a fixed list of fields, serialized as an array with fixed ordering).
+- `Advanced Data Layouts` couple programmatic functionality with data structures, allowing for complex data structuring while presenting as the Data Model (e.g. encryption, large multi-block spanning data structures). Note that ADL APIs are more stable for reading than writing as write APIs are under development.
+- `Codecs` are bound by the data model to include a set of data types, including links (currently represented as CIDs). Codecs supporting a subset of the Data Model (DAG-PB, plain CBOR, plain JSON, etc.) likewise have limited support from functionality from Data Model components.
+- `Blocks` are arbitrary arrays of bytes identified by a CID (content identifier, including hash and codec details). IPLD doesn't concern itself with the source or nature of these bytes as long as its Codecs can read and/or write them. Limitations (size, location, availability, etc.) are concerns of the data source.
+- The `Universal Interface` is the interface that applications use which abstracts over top of the raw data model and lenses like Schemas and ADLs. It can then be used by higher level APIs to load and manipulate data.
+- `Traversal` is the act of following links and fields inside IPLD data.
+- You can `Print` IPLD data in a human-readable format which preserves it's structure.
+- `Selectors` are expressions that describe a traversal over an IPLD dag and "select" a subset of nodes during that walk.
+- You can `Transform` IPLD data using different techniques like traversing it and using selectors to choose nodes to modify.
+- You can also `Patch` data using the Universal Interface to apply changes to it. Note that patch APIs are currently [under development](https://github.com/ipld/go-ipld-prime/pull/350).
 
 ### Up Next
 

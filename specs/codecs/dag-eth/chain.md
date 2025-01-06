@@ -2,7 +2,7 @@
 
 This section contains the IPLD schemas for the blockchain data structures of Ethereum.
 This includes: headers, uncle sets, transactions, and receipts. The state trie, storage trie,
-receipt trie, and transaction trie IPLDs are described in the [state](../state) section. It
+receipt trie, and transaction trie IPLDs are described in the [state](./state.md) section. It
 is important to note that traversal from header to a specific transaction or receipt requires traversal
 across their respective tries beginning at the root referenced in the header. Alternatively, uncles are referenced
 directly from the header by the hash of the RLP encoded list of uncles.
@@ -100,7 +100,7 @@ type Transaction struct {
     ChainID      nullable BigInt # null unless the transaction is an EIP-2930 or EIP-1559 transaction
     AccountNonce Uint
     GasPrice     nullable BigInt # null if the transaction is an EIP-1559 transaction
-    GasTipCap    nullable BigInt # null unless the transaciton is an EIP-1559 transaction
+    GasTipCap    nullable BigInt # null unless the transaction is an EIP-1559 transaction
     GasFeeCap    nullable BigInt # null unless the transaction is an EIP-1559 transaction
     GasLimit     Uint
     Recipient    nullable Address # null recipient means the tx is a contract creation tx
@@ -149,7 +149,7 @@ type Receipt struct {
     Logs              [Log]
 }
 
-# Status is an enum indicating whether or not the application of a tx was succesful
+# Status is an enum indicating whether or not the application of a tx was successful
 type Status enum {
     | Failed  ("0")
     | Successful   ("1")

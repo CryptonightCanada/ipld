@@ -3,6 +3,7 @@ title: "Specs: Selectors"
 navTitle: "Selectors"
 eleventyNavigation:
   order: 60
+  synopsys: "Selectors are a declarative API for describing walks across IPLD data."
 ---
 
 Selectors
@@ -65,6 +66,7 @@ type Selector union {
 	| ExploreUnion "|"
 	| ExploreConditional "&"
 	| ExploreRecursiveEdge "@" # sentinel value; only valid in some positions.
+	| InterpretAs "~"
 } representation keyed
 
 ## ExploreAll is similar to a `*` -- it traverses all elements of an array,
@@ -126,10 +128,19 @@ type ExploreRange struct {
 ## with selectors like ExploreAll inside the sequence).
 ##
 ## limit is a union type -- it can have an integer depth value (key "depth") or
-## no value (key "none"). If limit has no value it is up to the 
+## no value (key "none"). If limit has no value it is up to the
 ## implementation library using selectors to identify an appropriate max depth
-## as necessary so that recursion is not infinite
-
+## as necessary so that recursion is not infinite.
+##
+## stopAt specifies a Condition that stops the traversal when it is fulfilled.
+## If throughout the traversal the selector encounters a node that matches
+## Condition it will finish exploring the current node and it won't recurse more,
+## stopping the traversal immediately.
+## If Condition is never matched, the selector performs the traversal seamlessly
+## until the end. This feature is of particular interest for applications that need to
+## recurse a large linked structure up to a specific point. stopAt can be used to
+## let the selector know where to stop recursing preventing from having to traverse
+## the full structure.
 type ExploreRecursive struct {
 	sequence Selector (rename ":>")
 	limit RecursionLimit (rename "l")
@@ -172,6 +183,57 @@ type ExploreConditional struct {
 	next Selector (rename ">")
 }
 
+## InterpretAs is a clause that instructs the traversal to attempt to 'reify' the current node
+## using an ADL, which is specified by the 'as' field.
+## ADLs are identified by agreed-upon strings, similar to libp2p protocols.
+## Once reified, the traversal continues upon the newly reified view of the data,
+## rather than the original raw data.
+##
+## If the selection interpreter doesn't have an ADL implementation available
+## by the name requested, the traversal cannot continue.
+##
+## The reification process may consume a data-dependent amount of budget on evaluation,
+## based on the specific traversal and ADL implementation.
+## Similarly, steps across the ADL once reified may also consume data-dependent
+## amounts of any resource budgets.
+type InterpretAs struct {
+	as String
+	next Selector (rename ">")
+}
+
+## Slice is a predicate that selects only a subset of node.
+## This is applicable primarily in the context of reified nodes based on the
+## InterpetAs clause above, where the primitive (bytes or string) node is
+## actually composed from multiple underlying substrate nodes.
+##
+## The slice is specified by a "from" index, which is inclusive, and a "to"
+## index, which is exclusive. That is: [from, to).
+##
+##  * Overflow of "to" is allowed, in which case a reified node
+##    implementation should interpret the overflow as the end of the slice. This
+##    allows for a simple way to specify a slice from a particular index to the
+##    end of the slice, without needing to know the length of the slice.
+##
+##  * Negative values are allowed for "from" and "to", and are interpreted as
+##    offsets from the end of the slice. e.g. -1 is the last element, -2 is the
+##    second to last, etc. When a negative "from" value resolves to a negative
+##    index once the length of the slice is known (i.e. an underflow), the
+##    "from" value will be adjusted to be 0.
+##
+##    Reified node implementations may choose to not implement negative ranges
+##    due to difficulties in implementing them efficiently. In these cases, the
+##    selector will fail to match.
+##
+##  * Where the from:to range fails to match within the byte range of the node,
+##    (e.g. where they select a range beyond the end of the node), or where they
+##    resolve to a negative, or zero-length range (from>=to), the selector will
+##    fail to match. However, in the case where from==to, the selector will
+##    match, but the node should be empty.
+type Slice struct {
+	from Int (rename "[")
+	to Int (rename "]")
+}
+
 ## Matcher marks a node to be included in the "result" set.
 ## (All nodes traversed by a selector are in the "covered" set (which is a.k.a.
 ## "the merkle proof"); the "result" set is a subset of the "covered" set.)
@@ -184,6 +246,7 @@ type ExploreConditional struct {
 type Matcher struct {
 	onlyIf optional Condition # match is true based on position alone if this is not set.
 	label optional String # labels can be used to match multiple different structures in one selection.
+	subset optional Slice # if set, only the subset of the node specified by the slice is matched.
 }
 
 ## Condition is expresses a predicate with a boolean result.
@@ -214,7 +277,7 @@ type Condition union {
 
 ### fixtures
 
-- [selector-fixtures-1.taf](./fixtures/selector-fixtures-1.taf)
+- [selector-fixtures-1](./fixtures/selector-fixtures-1/)
 
 
 Known issues
